@@ -4,7 +4,7 @@ from antlr_ast.ast import (
 )
 
 from compiler.ast.parse import parse_script
-from compiler.ast.nodes import NodesTransformerContext
+from compiler.ast.transformer_context import NodesTransformerContext
 
 
 class Transformer(BaseNodeTransformer):

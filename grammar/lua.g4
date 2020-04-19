@@ -1,105 +1,96 @@
 grammar lua;
 
-root: block EOF;
+root: block EOF?;
 
-block: statement* return_statement?;
+block : (statements+=statement (';')?)* (return_statement (';')?)?;
+return_statement : 'return' (rvalue_handle)? | 'break';
 
-statement
-    : ';'                                   #colon_statement
-    | left_tuple=variables_tuple op='=' right_tuple=expressions_tuple #assignment_statement
-    | function_call                         #call_statement
-    | 'break'                               #break_statement
-    | 'do' block 'end'                      #do_loop_statement
-    | 'while' expression 'do' block 'end'   #while_loop_statement
-    | 'repeat' block 'until' expression     #repeat_loop_statement
-    | 'if' expression 'then' block ('elseif' expression 'then' block)* ('else' block)? 'end' #if_block_statement
-    | 'for' IDENTIFIER '=' expression ',' expression (',' expression)? 'do' block 'end'      #for_loop_statement
-    | 'for' entry=identifiers_tuple 'in' collection=expressions_tuple 'do' block 'end'                        #foreach_loop_statement
-    | 'function' function_name function_body                                                 #function_decl_statement
-    | 'local' 'function' local_function_name function_body                                   #local_function_statement
-    | 'local' left=identifiers_tuple (op='=' right=expressions_tuple)?                                     #local_variables_statement
-    ;
+statement :  lvalue_handle '=' rvalue_handle #lb_assignment_statement |
+	function_call_statement #lb_call_statement |
+	'do' block 'end' #lb_do_statement |
+	'while' expression 'do' block 'end' #lb_while_statement |
+	'repeat' block 'until' expression #lb_repeat_until_statement |
+	'if' expression 'then' block ('elseif' expression 'then' block)* ('else' block)? 'end' #lb_conditional_statement |
+	'for' NAME '=' expression ',' expression (',' expression)? 'do' block 'end' #lb_for_statement |
+	'for' lvalue_identifiers_list 'in' rvalue_handle 'do' block 'end' #lb_foreach_statement |
+	'function' top_level_name=NAME ('.' class_level_name=NAME)* (':' class_level_name=NAME)? function_body #lb_function_declaration_statement |
+	'local' 'function' NAME function_body #lb_local_function_declaration_statement |
+	'local' lvalue_identifiers_list ('=' rvalue_handle)? #lb_local_lvalue_declaration_statement ;
 
-return_statement: 'return' expressions_tuple? ';'?;
-function_name: IDENTIFIER ('.' IDENTIFIER)* (':' IDENTIFIER)?;
-local_function_name: IDENTIFIER;
+lvalue_handle : expressions+=expression_assignable (',' expressions+=expression_assignable)*;
+lvalue_identifiers_list : NAME (',' NAME)*;
+rvalue_handle : (expressions+=expression ',')* expressions+=expression;
 
-variables_tuple: variable (',' variable)*;
+expression:
+    'nil' #lb_nil_literal_expression
+    | 'false' #lb_false_literal_expression
+    | 'true'  #lb_true_literal_expression
+    | number #lb_number_literal_expression
+    | string #lb_string_literal_expression
+    | '...' #lb_ellipsis_literal_expression
+    | function #lb_function_declaration_expression
+    | table_declaration #lb_table_declaration_expression
+    | '(' expression ')' #lb_brackets_expression
+    | operation=('not' | '#' | '-' | '~') right=expression                          #lb_unary_expression
+    | left=expression operation=( '*' | '/' | '%' | '//') right=expression          #lb_binary_term_expression
+    | left=expression operation=( '+' | '-' ) right=expression                      #lb_binary_expr_expression
+    | <assoc=right> left=expression operation='..' right=expression                 #lb_concat_expression
+    | left=expression operation=('<' | '>' | '<=' | '>=' | '~=' | '==') right=expression #lb_logic_equal_expression
+    | left=expression operation='and' right=expression                                   #lb_logic_and_expression
+    | left=expression operation='or' right=expression                             #lb_logic_or_expression
+    | right=expression operation=('&' | '|' | '~' | '<<' | '>>') right=expression #lb_bit_expression
+    | expression_value #lb_value_expression
+    | expression_access_by_index #lb_access_by_index_expression
+    | expression_call #lb_call
+;
 
-identifiers_tuple: IDENTIFIER (',' IDENTIFIER)*;
+expression_value: NAME (':' NAME)?;
+expression_access_by_index: expression_accessible_by_index '[' expression ']';
+expression_call: expression_callable '(' (rvalue_handle)? ')';
 
-expressions_tuple: expression ((',') expression)*;
+expression_accessible_by_index: expression_value | string;
+expression_callable: expression_value | string;
+expression_assignable: expression_value;
 
-expression
-    : 'nil'                                                            #nil_literal_expression
-    | 'false'                                                          #false_literal_expression
-    | 'true'                                                           #true_literal_expression
-    | number                                                           #number_literal_expression
-    | string                                                           #string_literal_expression
-    | '...'                                                            #ellipsis_expression
-    | function_expr                                                    #function_expression
-    | handle=value_handle args=args_expression*                                          #value_handle_expression
-    | table_declaration                                                      #table_declaration_expression
-    | <assoc=right> left=expression op='^' right=expression                  #xor_expression
-    | op=('not' | '#' | '-' | '~') right=expression                          #unary_expression
-    | left=expression op=( '*' | '/' | '%' | '//') right=expression          #binary_term_expression
-    | left=expression op=( '+' | '-' ) right=expression                      #binary_expr_expression
-    | <assoc=right> left=expression op='..' right=expression                 #concat_expression
-    | left=expression op=('<' | '>' | '<=' | '>=' | '~=' | '==') right=expression #equal_expression
-    | left=expression op='and' right=expression                                   #and_expression
-    | left=expression op='or' right=expression                                                  #or_expression
-    | right=expression op=('&' | '|' | '~' | '<<' | '>>') right=expression                       #bit_expression
-    ;
+function_call_statement: NAME (':' NAME)? '(' (rvalue_handle)? ')';
 
-function_call: (varpointer=variable | varexpr='(' expression ')') args=args_expression+;
+function : 'function' function_body;
+function_body : '(' (function_parameters_list)? ')' block 'end';
+function_parameters_list : lvalue_identifiers_list (',' ellipsis='...')? | ellispis='...';
 
-value_handle: variable | '(' expression ')';
+table_declaration : '{' (table_fields)? '}';
+table_fields : table_field_declaration (fields_separator table_field_declaration)* (fields_separator)?;
+table_field_declaration : '[' expression ']' '=' expression | NAME '=' expression | expression;
 
-variable: (IDENTIFIER | '(' expression ')' variable_expr_suffix) variable_expr_suffix*;
-variable_expr_suffix: args_expression* ('[' expression ']' | '.' IDENTIFIER);
+fields_separator : ',' | ';';
 
-args_expression: (':' IDENTIFIER)? function_args;
-
-function_args: '(' expressions_tuple? ')' | table_declaration | string;
-function_expr: 'function' function_body;
-function_body: '(' parameters_list? ')' block 'end';
-parameters_list: identifiers_tuple (',' '...')? | '...';
-
-table_declaration: '{' table_fields_list? '}';
-table_fields_list: table_field ((',' | ';') table_field)* (',' | ';')?;
-table_field: '[' expression ']' '=' expression | IDENTIFIER '=' expression | expression;
-
-number: INT | FLOAT;
-string: DOUBLE_QUOTE_STRING | SINGLE_QUOTE_STRING;
+number : INT | FLOAT | EXP | HEX;
+string	: NORMALSTRING | CHARSTRING | LONGSTRING;
 
 // TOKENS
+NAME: [a-zA-Z_][a-zA-Z_0-9]*;
 
-IDENTIFIER: [a-zA-Z_][a-zA-Z_0-9]*;
+INT	: ('0'..'9')+;
+FLOAT 	:INT '.' INT;
+EXP: (INT| FLOAT) ('E'|'e') ('-')? INT;
+HEX: '0x' ('0'..'9'| 'a'..'f')+;
 
-DOUBLE_QUOTE_STRING: '"' ( ESCAPED_SYMBOLS | ~('\\'|'"') )* '"';
-SINGLE_QUOTE_STRING: '\'' ( ESCAPED_SYMBOLS | ~('\''|'\\') )* '\'';
-
-INT: Digit+;
-
-FLOAT
-    : Digit+ '.' Digit* EXPONENT?
-    | '.' Digit+ EXPONENT?
-    | Digit+ EXPONENT
-    ;
+NORMALSTRING:  '"' ( EscapeSequence | ~('\\'|'"') )* '"';
+CHARSTRING:	'\'' ( EscapeSequence | ~('\''|'\\') )* '\'';
+LONGSTRING:	'['('=')*'[' ( EscapeSequence | ~('\\'|']') )* ']'('=')*']';
 
 fragment
-EXPONENT: [eE] [+-]? Digit+;
+EscapeSequence: '\\' ('b'|'t'|'n'|'f'|'r'|'\\"'|'\''|'\\') |   UnicodeEscape |   OctalEscape;
 
 fragment
-ESCAPED_SYMBOLS: '\\' [abfnrtvz"'\\] | '\\' '\r'? '\n';
+OctalEscape: '\\' ('0'..'3') ('0'..'7') ('0'..'7') | '\\' ('0'..'7') ('0'..'7') | '\\' ('0'..'7');
 
 fragment
-Digit: [0-9];
+UnicodeEscape: '\\' 'u' HexDigit HexDigit HexDigit HexDigit;
 
 fragment
-NESTED_STR: '=' NESTED_STR '='| '[' .*? ']';
+HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
 
-COMMENT: '--[' NESTED_STR ']' -> channel(HIDDEN);
-LINE_COMMENT: '--' ~('['|'\r'|'\n') ~('\r'|'\n')* ('\r\n'|'\r'|'\n'|EOF) -> channel(HIDDEN);
-
+COMMENT: '--[[' ()* ']]' -> skip;
+LINE_COMMENT: '--' ~('\n'|'\r')* '\r'? '\n' -> skip;
 WS: [ \t\u000C\r\n]+ -> skip;
