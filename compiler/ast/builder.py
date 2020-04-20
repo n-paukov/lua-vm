@@ -13,14 +13,17 @@ class Transformer(BaseNodeTransformer):
 
 class ASTBuilder:
     def __init__(self, text: str):
-        self.__text = text
-        self.__parse_tree = parse_script(text)
-        self.__ast = self.__create_ast_tree()
+        self._text = text
+        self._parse_tree = parse_script(text)
+        self._ast = self._create_ast_tree()
 
     def get_tree(self):
-        return self.__ast
+        return self._ast
 
-    def __create_ast_tree(self):
+    def _create_ast_tree(self):
         Transformer.bind_alias_nodes(NodesTransformerContext.get_available_nodes())
 
-        return process_tree(self.__parse_tree, transformer_cls=Transformer)
+        return process_tree(self._parse_tree, transformer_cls=Transformer)
+
+    def _perform_post_process(self):
+        pass

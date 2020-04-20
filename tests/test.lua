@@ -1,3 +1,1 @@
-function sum(a, b)
-    return a + b
-end
+a = 2 * 3 + 4

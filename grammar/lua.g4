@@ -3,30 +3,35 @@ grammar lua;
 root: block EOF?;
 
 block : (statements+=statement (';')?)* (return_statement (';')?)?;
-return_statement : 'return' (rvalue_handle)? | 'break';
+return_statement :
+    'return' (rvalue_handle)? #lb_block_end_return_statement
+    | 'break' #lb_block_end_break_statement
+    ;
 
 statement :  lvalue_handle '=' rvalue_handle #lb_assignment_statement |
 	function_call_statement #lb_call_statement |
 	'do' block 'end' #lb_do_statement |
 	'while' expression 'do' block 'end' #lb_while_statement |
 	'repeat' block 'until' expression #lb_repeat_until_statement |
-	'if' expression 'then' block ('elseif' expression 'then' block)* ('else' block)? 'end' #lb_conditional_statement |
+	'if' expression 'then' attr_then_block=block statement_elseif_item* ('else' attr_else_block=block)? 'end' #lb_conditional_statement |
 	'for' NAME '=' expression ',' expression (',' expression)? 'do' block 'end' #lb_for_statement |
 	'for' lvalue_identifiers_list 'in' rvalue_handle 'do' block 'end' #lb_foreach_statement |
 	'function' top_level_name=NAME ('.' class_level_name=NAME)* (':' class_level_name=NAME)? function_body #lb_function_declaration_statement |
 	'local' 'function' NAME function_body #lb_local_function_declaration_statement |
 	'local' lvalue_identifiers_list ('=' rvalue_handle)? #lb_local_lvalue_declaration_statement ;
 
+statement_elseif_item: 'elseif' expression 'then' block;
+
 lvalue_handle : expressions+=expression_assignable (',' expressions+=expression_assignable)*;
 lvalue_identifiers_list : NAME (',' NAME)*;
 rvalue_handle : (expressions+=expression ',')* expressions+=expression;
 
 expression:
-    'nil' #lb_nil_literal_expression
-    | 'false' #lb_false_literal_expression
-    | 'true'  #lb_true_literal_expression
-    | number #lb_number_literal_expression
-    | string #lb_string_literal_expression
+    nil_value='nil' #lb_nil_literal_expression
+    | boolean_value='false' #lb_false_literal_expression
+    | boolean_value='true'  #lb_true_literal_expression
+    | number_value=number #lb_number_literal_expression
+    | string_value=string #lb_string_literal_expression
     | '...' #lb_ellipsis_literal_expression
     | function #lb_function_declaration_expression
     | table_declaration #lb_table_declaration_expression
@@ -41,10 +46,10 @@ expression:
     | right=expression operation=('&' | '|' | '~' | '<<' | '>>') right=expression #lb_bit_expression
     | expression_value #lb_value_expression
     | expression_access_by_index #lb_access_by_index_expression
-    | expression_call #lb_call
+    | expression_call #lb_call_expression
 ;
 
-expression_value: NAME (':' NAME)?;
+expression_value: top_level_name=NAME (':' class_level_name=NAME)?;
 expression_access_by_index: expression_accessible_by_index '[' expression ']';
 expression_call: expression_callable '(' (rvalue_handle)? ')';
 
@@ -52,7 +57,7 @@ expression_accessible_by_index: expression_value | string;
 expression_callable: expression_value | string;
 expression_assignable: expression_value;
 
-function_call_statement: NAME (':' NAME)? '(' (rvalue_handle)? ')';
+function_call_statement: top_level_name=NAME (':' class_level_name=NAME)? '(' (rvalue_handle)? ')';
 
 function : 'function' function_body;
 function_body : '(' (function_parameters_list)? ')' block 'end';
