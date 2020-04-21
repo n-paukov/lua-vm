@@ -2,6 +2,8 @@ from enum import Enum
 from typing import Optional, Tuple, Union
 
 from compiler.ast.ast_nodes.node import ASTNode
+from compiler.opcodes.context import OPCodesCompilationContext
+from vm.opcodes.opcodes import OPCode, OPCodeType
 
 
 class LiteralType(Enum):
@@ -24,8 +26,32 @@ class LiteralNode(ASTNode):
         return "Literal(type={}, value={})".format(self._type, self._value)
 
     @property
+    def type(self):
+        return self._type
+
+    @property
     def value(self):
         return self._value
+
+    @property
+    def value_representation(self):
+        value = ""
+
+        if self._type == LiteralType.STRING:
+            value = '"{}"'.format(self._value)
+        elif self._type == LiteralType.NUMBER:
+            value = str(self._value)
+        elif self._type == LiteralType.IDENTIFIER:
+            value = str(self._value)
+        elif self._type == LiteralType.BOOLEAN:
+            value = str(self._value)
+        elif self._type == LiteralType.NIL:
+            value = str(self._value)
+
+        return value
+
+    def generate_opcodes(self, context: OPCodesCompilationContext):
+        context.add_opcode(OPCode(OPCodeType.PUSH, [self.value_representation]))
 
 
 class ValueName(ASTNode):
@@ -35,6 +61,10 @@ class ValueName(ASTNode):
         super().__init__()
         self._name = name
         self._class_name = class_name
+
+    @property
+    def is_class_value(self) -> bool:
+        return self._class_name is not None
 
     @property
     def class_name(self):
@@ -54,6 +84,9 @@ class ValueName(ASTNode):
     def __str__(self):
         if self._class_name is not None:
             return "ValueName(\"{}\")".format(self.full_name)
+
+    def generate_opcodes(self, context: OPCodesCompilationContext):
+        raise NotImplementedError
 
 
 class FunctionParameter:

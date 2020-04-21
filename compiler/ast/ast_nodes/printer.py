@@ -1,4 +1,3 @@
-import ast
 import contextlib
 from typing import Any
 from typing import Generator
@@ -106,5 +105,5 @@ def pformat(node: Union[ASTNode, None, str], indent: str = '    ', _indent: int 
         return out
 
 
-def print_tree(node: Union[ASTNode, None, str]):
+def print_tree(node: ASTNode):
     print(pformat(node))

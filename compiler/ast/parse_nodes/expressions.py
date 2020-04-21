@@ -4,7 +4,8 @@ from compiler.ast.parse_nodes.expression import ExpressionNode
 from compiler.ast.parse_nodes.helpers import raw_value_name_to_ast_node
 from compiler.ast.parse_nodes.node import ParseNode
 from compiler.ast.ast_nodes.expressions import ExpressionsTuple as ASTExpressionsTuple, ValueExpression, \
-    BinaryOperationExpression as ASTBinaryOperationExpression, BinaryExpressionType
+    BinaryOperationExpression as ASTBinaryOperationExpression, BinaryExpressionType, \
+    FunctionCallExpression as ASTFunctionCallExpression
 
 
 class ExpressionsTuple(ExpressionNode):
@@ -55,13 +56,21 @@ class AssignableExpression(ExpressionNode):
         return ValueExpression(self.expression_value.get_ast_node())
 
 
+class LeftValueIdentifiersList(ExpressionNode):
+    _fields_spec = ["NAME"]
+    _rules = ["lvalue_identifiers_list"]
+
+    def get_ast_node(self) -> ASTNode:
+        raise NotImplementedError
+
+
 class ValueNameExpression(ExpressionNode):
     _fields_spec = ["top_level_name", "class_level_name"]
     _rules = ["expression_value"]
 
     def get_ast_node(self) -> ASTNode:
-        return raw_value_name_to_ast_node(self.top_level_name,
-                                          self.class_level_name)
+        return raw_value_name_to_ast_node(self.top_level_name.value,
+                                          self.class_level_name.value if self.class_level_name is not None else None)
 
 
 class BinaryOperationExpression(ExpressionNode):
@@ -88,14 +97,13 @@ class BinaryOperationExpression(ExpressionNode):
                                             expression_type)
 
 
-class BinaryOperationNode(ParseNode):
-    _fields_spec = ["left", "op", "right"]
-    _rules = ["equal_expression"]
-
-
-class CallExpression(ExpressionNode):
+class FunctionCallExpression(ExpressionNode):
     _fields_spec = ["callable=expression_call.expression_callable", "args=expression_call.rvalue_handle"]
     _rules = ["lb_call_expression"]
+
+    def get_ast_node(self) -> ASTNode:
+        return ASTFunctionCallExpression(self.callable.get_ast_node(),
+                                         self.args.get_ast_node())
 
 # class CallableHandle(ExpressionNode):
 #     _fields_spec = ["callable=callable_handle", "args=args_expression"]

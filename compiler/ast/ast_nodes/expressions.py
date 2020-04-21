@@ -3,6 +3,8 @@ from typing import List
 
 from compiler.ast.ast_nodes.common import LiteralNode, ValueName
 from compiler.ast.ast_nodes.expression import ExpressionNode
+from compiler.opcodes.context import OPCodesCompilationContext
+from vm.opcodes.opcodes import OPCode, OPCodeType
 
 
 class ExpressionsTuple(ExpressionNode):
@@ -11,6 +13,13 @@ class ExpressionsTuple(ExpressionNode):
     def __init__(self, expressions: List[ExpressionNode]):
         super().__init__()
         self._expressions = expressions
+
+    @property
+    def expressions(self):
+        return self._expressions
+
+    def generate_opcodes(self, context: OPCodesCompilationContext):
+        raise NotImplementedError
 
 
 class LocalAssignmentExpression(ExpressionNode):
@@ -38,6 +47,21 @@ class BinaryOperationExpression(ExpressionNode):
         self._right = right
         self._expression_type = expression_type
 
+    def generate_opcodes(self, context: OPCodesCompilationContext):
+        self._left.generate_opcodes(context)
+        self._right.generate_opcodes(context)
+
+        if self._expression_type == BinaryExpressionType.ADD:
+            context.add_opcode(OPCode(OPCodeType.SUM))
+        elif self._expression_type == BinaryExpressionType.SUBTRACT:
+            context.add_opcode(OPCode(OPCodeType.SUBTRACT))
+        elif self._expression_type == BinaryExpressionType.MULTIPLY:
+            context.add_opcode(OPCode(OPCodeType.MULTIPLY))
+        elif self._expression_type == BinaryExpressionType.DIVIDE:
+            context.add_opcode(OPCode(OPCodeType.DIVIDE))
+        else:
+            raise NotImplementedError
+
 
 class FunctionCallExpression(ExpressionNode):
     _printable_fields = ["_callable", "_args"]
@@ -55,3 +79,6 @@ class ValueExpression(ExpressionNode):
         super().__init__()
         self._value_name = value_name
 
+    @property
+    def value_name(self):
+        return self._value_name

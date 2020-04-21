@@ -2,16 +2,29 @@ import astpretty
 
 from compiler.ast.ast_nodes.printer import print_tree
 from compiler.ast.builder import ASTBuilder
-from utils.files import read_all_text
+from compiler.opcodes_compiler import OPCodesCompiler
+from utils.files import read_all_text, write_all_text
+from vm.opcodes.IO import OPCodesIO
+from vm.opcodes.opcodes import OPCode, OPCodeType
+from vm.vm import VirtualMachine
+
 
 def main():
     builder = ASTBuilder(read_all_text('./tests/test.lua'))
-    ast = builder.get_tree()
+    print_tree(builder.get_tree())
 
-    #astpretty.pprint(ast)
+    bytecode = OPCodesCompiler.compile(read_all_text('./tests/test.lua'))
+    print(OPCodesIO.get_program_text(bytecode))
+    #write_all_text("./tests/test.vm", bytecode)
 
-    vv = ast.get_ast_node()
-    print_tree(vv)
+    virtual_machine = VirtualMachine(bytecode)
+    virtual_machine.run()
+
+    # ast = builder.get_tree()
+
+    # astpretty.pprint(ast)
+
+    # vv = ast.get_ast_node()
 
 
 if __name__ == '__main__':

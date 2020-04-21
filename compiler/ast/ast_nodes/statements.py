@@ -1,10 +1,13 @@
 from typing import List
 
-from compiler.ast.ast_nodes.common import ValueName, FunctionParameter
+from compiler.ast.ast_nodes.common import ValueName, FunctionParameter, LiteralType
 from compiler.ast.ast_nodes.expression import ExpressionNode
-from compiler.ast.ast_nodes.expressions import ExpressionsTuple
+from compiler.ast.ast_nodes.expressions import ExpressionsTuple, ValueExpression
 from compiler.ast.ast_nodes.script import StatementsBlock
 from compiler.ast.ast_nodes.statement import StatementNode
+from compiler.exceptions.common import OPCodesCompilationError
+from compiler.opcodes.context import OPCodesCompilationContext
+from vm.opcodes.opcodes import OPCode, OPCodeType
 
 
 class AssignmentStatement(StatementNode):
@@ -15,16 +18,36 @@ class AssignmentStatement(StatementNode):
         self._lvalue_tuple = lvalue_tuple
         self._rvalue_tuple = rvalue_tuple
 
+    def generate_opcodes(self, context: OPCodesCompilationContext):
+        for expression in self._rvalue_tuple.expressions:
+            expression.generate_opcodes(context)
+
+        for expression in reversed(self._lvalue_tuple.expressions):
+            if not isinstance(expression, ValueExpression):
+                raise OPCodesCompilationError("Left value tuple should contain only assignable value expressions")
+
+            value_name = expression.value_name
+            assert not value_name.is_class_value
+
+            if value_name.name.type != LiteralType.IDENTIFIER:
+                raise OPCodesCompilationError("Left value tuple subexpressions should be identifiers")
+
+            context.add_opcode(OPCode(OPCodeType.ASSIGN, [value_name.name.value_representation]))
+
 
 class FunctionDeclarationStatement(StatementNode):
-    def __init__(self, name: ValueName, parameters: List[FunctionParameter], statements: StatementsBlock):
+    _printable_fields = ["_name", "_parameters", "_statements_block"]
+
+    def __init__(self, name: ValueName, parameters: List[ValueName], statements: StatementsBlock):
         super().__init__()
         self._name = name
         self._parameters = parameters
-        self._statements = statements
+        self._statements_block = statements
 
 
 class ReturnStatement(StatementNode):
+    _printable_fields = ["_rvalue_tuple"]
+
     def __init__(self, rvalue_tuple: ExpressionsTuple):
         super().__init__()
         self._rvalue_tuple = rvalue_tuple

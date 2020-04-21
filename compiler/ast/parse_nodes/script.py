@@ -19,8 +19,9 @@ class StatementsBlock(ParseNode):
     def get_ast_node(self) -> ASTNode:
         statements = []
 
-        for statement in self.statements:
-            statements.append(statement.get_ast_node())
+        if self.statements:
+            for statement in self.statements:
+                statements.append(statement.get_ast_node())
 
         if self.return_statement:
             statements.append(self.return_statement.get_ast_node())

@@ -1,0 +1,6 @@
+push 2.0
+push 3.0
+push 4.0
+multiply 
+sum 
+assign a
