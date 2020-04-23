@@ -8,3 +8,11 @@ class VirtualMachineRuntimeError(RuntimeError):
 
 class VirtualMachineInvalidInstructionError(VirtualMachineRuntimeError):
     pass
+
+
+class VirtualMachineInvalidOperationError(VirtualMachineRuntimeError):
+    pass
+
+
+class VirtualMachineScopeOrderError(VirtualMachineRuntimeError):
+    pass
