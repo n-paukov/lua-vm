@@ -16,6 +16,6 @@ class OPCodesIO:
 
             opcode_definition = OPCodesDefinitions.get_definition(opcode.type)
 
-            text += "{} {}\n".format(opcode_definition.name, " ".join(opcode.args))
+            text += "{} {}\n".format(opcode_definition.name, " ".join([str(arg) for arg in opcode.args]))
 
         return text

@@ -5,7 +5,8 @@ from compiler.ast.parse_nodes.statement import StatementNode
 from compiler.ast.ast_nodes.statements import AssignmentStatement as ASTAssignmentStatement, \
     FunctionDeclarationStatement as ASTFunctionDeclarationStatement, ReturnStatement as ASTReturnStatement, \
     BreakStatement as ASTBreakStatement
-from compiler.ast.ast_nodes.expressions import FunctionCallExpression as ASTFunctionCallExpression, ValueExpression
+from compiler.ast.ast_nodes.expressions import FunctionCallExpression as ASTFunctionCallExpression, ValueExpression, \
+    ExpressionsTuple
 
 
 class AssignmentStatement(StatementNode):
@@ -26,11 +27,13 @@ class FunctionDeclarationStatement(StatementNode):
     def get_ast_node(self) -> ASTNode:
         parameters = []
 
-        for name in self.parameters.NAME:
-            parameters.append(ValueName(name))
+        if self.parameters is not None:
+            for name in self.parameters.NAME:
+                parameters.append(ValueName(name))
 
         return ASTFunctionDeclarationStatement(
-            raw_value_name_to_ast_node(self.top_level_name.value, self.class_level_name.value),
+            raw_value_name_to_ast_node(self.top_level_name.value,
+                                       self.class_level_name.value if self.class_level_name is not None else None),
             parameters,
             self.body.get_ast_node())
 
@@ -60,7 +63,7 @@ class FunctionCallStatement(StatementNode):
     def get_ast_node(self) -> ASTNode:
         return ASTFunctionCallExpression(
             ValueExpression(raw_value_name_to_ast_node(self.top_level_name, self.class_level_name)),
-            self.args.get_ast_node())
+            self.args.get_ast_node() if self.args else ExpressionsTuple([]))
 
 
 class ConditionalStatement(StatementNode):

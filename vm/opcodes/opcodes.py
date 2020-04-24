@@ -11,8 +11,8 @@ class OPCodeType(Enum):
     # Example: function test
     FUNCTION = auto()
 
-    # Returns from the function (the return value should be pushed to the stack)
-    # Example: return
+    # Returns from the function (the return values should be pushed to the stack)
+    # Example: return 5
     RETURN = auto()
 
     # Pushes value to the stack
@@ -27,8 +27,8 @@ class OPCodeType(Enum):
     # Example: assign var
     ASSIGN = auto()
 
-    # Pops value from the stack and calls it
-    # Example: call
+    # Pops value from the stack and calls it with specified number of arguments
+    # Example: call 3
     CALL = auto()
 
     # Gets two values from the stack, sums them and pushes result
@@ -68,6 +68,14 @@ class OPCodeType(Enum):
     # Example: divide
     DIVIDE = auto()
 
+    # Starts new visibility scope
+    # Example: begin_scope
+    BEGIN_SCOPE = auto()
+
+    # Destroys current visibility scope
+    # Example: end_scope
+    END_SCOPE = auto()
+
 
 class OPCodeBinaryTestMode(Enum):
     EQ = "eq"
@@ -104,11 +112,11 @@ class OPCodeDefinition:
 class OPCodesDefinitions:
     _opcodes_definitions = {
         OPCodeType.FUNCTION: OPCodeDefinition("function", [OPCodeArgDefinition(str)]),
-        OPCodeType.RETURN: OPCodeDefinition("return"),
+        OPCodeType.RETURN: OPCodeDefinition("return", [OPCodeArgDefinition(int)]),
         OPCodeType.PUSH: OPCodeDefinition("push", [OPCodeArgDefinition(str)]),
         OPCodeType.POP: OPCodeDefinition("pop"),
         OPCodeType.ASSIGN: OPCodeDefinition("assign", [OPCodeArgDefinition(str)]),
-        OPCodeType.CALL: OPCodeDefinition("call"),
+        OPCodeType.CALL: OPCodeDefinition("call", [OPCodeArgDefinition(int)]),
         OPCodeType.SUM: OPCodeDefinition("sum"),
         OPCodeType.BINARY_TEST: OPCodeDefinition("binary_test", [OPCodeArgDefinition(OPCodeBinaryTestMode)]),
         OPCodeType.UNARY_TEST: OPCodeDefinition("unary_test"),
@@ -118,6 +126,8 @@ class OPCodesDefinitions:
         OPCodeType.SUBTRACT: OPCodeDefinition("subtract"),
         OPCodeType.MULTIPLY: OPCodeDefinition("multiply"),
         OPCodeType.DIVIDE: OPCodeDefinition("divide"),
+        OPCodeType.BEGIN_SCOPE: OPCodeDefinition("begin_scope"),
+        OPCodeType.END_SCOPE: OPCodeDefinition("end_scope"),
     }
 
     @classmethod

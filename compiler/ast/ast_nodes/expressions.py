@@ -71,6 +71,19 @@ class FunctionCallExpression(ExpressionNode):
         self._callable = callable_expression
         self._args = args
 
+    def generate_opcodes(self, context: OPCodesCompilationContext):
+        for expression in self._args.expressions:
+            expression.generate_opcodes(context)
+
+        if isinstance(self._callable, ValueExpression):
+            self._callable.generate_opcodes(context)
+        elif isinstance(self._callable, ValueName):
+            self._callable.generate_opcodes(context)
+        else:
+            raise NotImplementedError
+
+        context.add_opcode(OPCode(OPCodeType.CALL, [len(self._args.expressions)]))
+
 
 class ValueExpression(ExpressionNode):
     _printable_fields = ["_value_name"]
@@ -82,3 +95,6 @@ class ValueExpression(ExpressionNode):
     @property
     def value_name(self):
         return self._value_name
+
+    def generate_opcodes(self, context: OPCodesCompilationContext):
+        self._value_name.generate_opcodes(context)

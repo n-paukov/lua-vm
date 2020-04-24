@@ -12,6 +12,10 @@ class StatementsBlock(ASTNode):
         super().__init__()
         self._statements = statements
 
+    @property
+    def statements(self) -> List[StatementNode]:
+        return self._statements
+
     def generate_opcodes(self, context: OPCodesCompilationContext):
         for statement in self._statements:
             statement.generate_opcodes(context)

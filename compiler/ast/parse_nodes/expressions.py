@@ -103,7 +103,7 @@ class FunctionCallExpression(ExpressionNode):
 
     def get_ast_node(self) -> ASTNode:
         return ASTFunctionCallExpression(self.callable.get_ast_node(),
-                                         self.args.get_ast_node())
+                                         self.args.get_ast_node() if self.args else ASTExpressionsTuple([]))
 
 # class CallableHandle(ExpressionNode):
 #     _fields_spec = ["callable=callable_handle", "args=args_expression"]

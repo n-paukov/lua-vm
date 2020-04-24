@@ -1,9 +1,9 @@
 from typing import List
 
-from vm.exceptions.common import VirtualMachineScopeOrderError
+from vm.exceptions.common import VirtualMachineScopeOrderError, VirtualMachineInvalidOperationError
 from vm.opcodes.opcodes import OPCode
 from vm.runtime.scope import Scope
-from vm.runtime.value import Value
+from vm.runtime.value import Value, CustomFunctionValue
 
 
 class CallContext:
@@ -52,14 +52,25 @@ class ExecutionContext:
     def current_scope(self) -> Scope:
         return self.current_call_context.current_scope
 
-    def get_current_instruction(self) -> OPCode:
+    @property
+    def global_scope(self) -> Scope:
+        return self._global_scope
+
+    @property
+    def current_instruction(self) -> OPCode:
         return self._code[self._instruction_address]
+
+    def create_scope(self):
+        self.current_call_context.create_scope()
+
+    def destroy_scope(self):
+        self.current_call_context.destroy_scope()
 
     def move_to_next_instruction(self):
         self._instruction_address += 1
 
     def perform_jump(self, address: int):
-        self._instruction_address += 1
+        raise NotImplementedError
 
     def push_value(self, value: Value):
         self._values_stack.append(value)
@@ -69,3 +80,17 @@ class ExecutionContext:
 
     def pop_value(self) -> Value:
         return self._values_stack.pop()
+
+    def skip_instruction(self):
+        if self.end_reached:
+            raise VirtualMachineInvalidOperationError("Impossible to skip instruction: end of program is reached")
+
+        self._instruction_address += 1
+
+    def enter_to_call_context(self, function: CustomFunctionValue):
+        self._call_stack.append(CallContext(self.current_scope, self._instruction_address))
+        self._instruction_address = function.instruction_address
+
+    def return_from_call_context(self):
+        destroyed_context = self._call_stack.pop()
+        self._instruction_address = destroyed_context.return_address

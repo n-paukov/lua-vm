@@ -38,7 +38,7 @@ class LiteralNode(ASTNode):
         value = ""
 
         if self._type == LiteralType.STRING:
-            value = '"{}"'.format(self._value)
+            value = self._value
         elif self._type == LiteralType.NUMBER:
             value = str(self._value)
         elif self._type == LiteralType.IDENTIFIER:
@@ -86,7 +86,7 @@ class ValueName(ASTNode):
             return "ValueName(\"{}\")".format(self.full_name)
 
     def generate_opcodes(self, context: OPCodesCompilationContext):
-        raise NotImplementedError
+        context.add_opcode(OPCode(OPCodeType.PUSH, [self.full_name]))
 
 
 class FunctionParameter:

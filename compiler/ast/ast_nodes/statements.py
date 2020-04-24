@@ -44,6 +44,28 @@ class FunctionDeclarationStatement(StatementNode):
         self._parameters = parameters
         self._statements_block = statements
 
+    def generate_opcodes(self, context: OPCodesCompilationContext):
+        context.add_opcode(OPCode(OPCodeType.FUNCTION, [self._name.full_name]))
+        context.add_opcode(OPCode(OPCodeType.BEGIN_SCOPE))
+
+        for parameter_name in reversed(self._parameters):
+            context.add_opcode(OPCode(OPCodeType.ASSIGN, [parameter_name.full_name]))
+
+        self._statements_block.generate_opcodes(context)
+
+        return_statement_found = False
+
+        for statement in self._statements_block.statements:
+            if isinstance(statement, ReturnStatement):
+                return_statement_found = True
+                break
+
+        if not return_statement_found:
+            context.add_opcode(OPCode(OPCodeType.PUSH, ["nil"]))
+            context.add_opcode(OPCode(OPCodeType.RETURN, [1]))
+
+        context.add_opcode(OPCode(OPCodeType.END_SCOPE))
+
 
 class ReturnStatement(StatementNode):
     _printable_fields = ["_rvalue_tuple"]
@@ -51,6 +73,12 @@ class ReturnStatement(StatementNode):
     def __init__(self, rvalue_tuple: ExpressionsTuple):
         super().__init__()
         self._rvalue_tuple = rvalue_tuple
+
+    def generate_opcodes(self, context: OPCodesCompilationContext):
+        for expression in self._rvalue_tuple.expressions:
+            expression.generate_opcodes(context)
+
+        context.add_opcode(OPCode(OPCodeType.RETURN, [len(self._rvalue_tuple.expressions)]))
 
 
 class BreakStatement(StatementNode):

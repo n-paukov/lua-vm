@@ -10,18 +10,20 @@ from vm.vm import VirtualMachine
 
 
 def main():
-    builder = ASTBuilder(read_all_text('./tests/test.lua'))
-    print_tree(builder.get_tree())
+    # builder = ASTBuilder(read_all_text('./tests/test.lua'))
+    # print_tree(builder.get_tree())
 
     bytecode = OPCodesCompiler.compile(read_all_text('./tests/test.lua'))
     print(OPCodesIO.get_program_text(bytecode))
     #write_all_text("./tests/test.vm", bytecode)
 
     virtual_machine = VirtualMachine(bytecode)
+    virtual_machine.load_standard_library()
+
     virtual_machine.run()
 
+    #print(virtual_machine._context.current_scope.get_value("d"))
     # ast = builder.get_tree()
-
     # astpretty.pprint(ast)
 
     # vv = ast.get_ast_node()
