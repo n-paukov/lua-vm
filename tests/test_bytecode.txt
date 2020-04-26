@@ -1,0 +1,70 @@
+0:		 function sum
+1:		 begin_scope 
+2:		 assign b
+3:		 assign a
+4:		 function internal_function
+5:		 begin_scope 
+6:		 assign b
+7:		 assign a
+8:		 push a
+9:		 push b
+10:		 sum 
+11:		 return 1
+12:		 end_scope 
+13:		 push a
+14:		 push b
+15:		 push internal_function
+16:		 call 2
+17:		 return 1
+18:		 end_scope 
+19:		 function calculate_some_expr
+20:		 begin_scope 
+21:		 assign c
+22:		 assign b
+23:		 assign a
+24:		 push a
+25:		 push b
+26:		 push sum
+27:		 call 2
+28:		 assign t
+29:		 push t
+30:		 push c
+31:		 subtract 
+32:		 assign t
+33:		 push t
+34:		 return 1
+35:		 end_scope 
+36:		 function print_interval
+37:		 begin_scope 
+38:		 assign c
+39:		 assign b
+40:		 assign a
+41:		 begin_scope 
+42:		 push 1.0
+43:		 assign number
+44:		 push number
+45:		 push a
+46:		 push b
+47:		 push c
+48:		 push calculate_some_expr
+49:		 call 3
+50:		 cmp_gt 
+51:		 jump_pos 61
+52:		 push "Iteration result is: "
+53:		 push number
+54:		 push print
+55:		 call 2
+56:		 push 1
+57:		 push number
+58:		 sum 
+59:		 assign number
+60:		 jump 44
+61:		 end_scope 
+62:		 push nil
+63:		 return 1
+64:		 end_scope 
+65:		 push 4.0
+66:		 push 6.0
+67:		 push 5.0
+68:		 push print_interval
+69:		 call 3

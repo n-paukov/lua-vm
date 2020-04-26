@@ -4,7 +4,7 @@ from compiler.ast.parse_nodes.helpers import raw_value_name_to_ast_node
 from compiler.ast.parse_nodes.statement import StatementNode
 from compiler.ast.ast_nodes.statements import AssignmentStatement as ASTAssignmentStatement, \
     FunctionDeclarationStatement as ASTFunctionDeclarationStatement, ReturnStatement as ASTReturnStatement, \
-    BreakStatement as ASTBreakStatement
+    BreakStatement as ASTBreakStatement, ForLoopStatement as ASTForLoopStatement
 from compiler.ast.ast_nodes.expressions import FunctionCallExpression as ASTFunctionCallExpression, ValueExpression, \
     ExpressionsTuple
 
@@ -75,3 +75,15 @@ class ConditionalStatement(StatementNode):
 class ConditionalElseIfStatement(StatementNode):
     _fields_spec = ["condition=expression", "then_block=block"]
     _rules = ["statement_elseif_item"]
+
+
+class ForLoopStatement(StatementNode):
+    _fields_spec = ["counter_name=attr_counter", "start=attr_start", "end=attr_end", "step=attr_step", "body=block"]
+    _rules = ["lb_for_statement"]
+
+    def get_ast_node(self) -> ASTNode:
+        return ASTForLoopStatement(raw_value_name_to_ast_node(self.counter_name, None),
+                                   self.start.get_ast_node(),
+                                   self.end.get_ast_node(),
+                                   self.step.get_ast_node() if self.step is not None else None,
+                                   self.body.get_ast_node())

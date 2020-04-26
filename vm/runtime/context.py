@@ -69,7 +69,9 @@ class ExecutionContext:
         self._instruction_address += 1
 
     def perform_jump(self, address: int):
-        raise NotImplementedError
+        # TODO: It is denied to jump into another scopes,
+        # so check that scope do not change after jump
+        self._instruction_address = address
 
     def push_value(self, value: Value):
         self._values_stack.append(value)

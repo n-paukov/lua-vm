@@ -3,7 +3,7 @@ from compiler.ast.parse_nodes.expressions import LocalAssignmentExpr, BinaryOper
     LeftValueIdentifiersList, UnaryOperationExpression
 from compiler.ast.parse_nodes.script import Script, StatementsBlock
 from compiler.ast.parse_nodes.statements import ReturnStatement, FunctionDeclarationStatement, FunctionCallStatement, \
-    AssignmentStatement, ConditionalStatement, ConditionalElseIfStatement
+    AssignmentStatement, ConditionalStatement, ConditionalElseIfStatement, ForLoopStatement
 
 
 class NodesTransformerContext:
@@ -12,5 +12,5 @@ class NodesTransformerContext:
         return [Script, StatementsBlock, ReturnStatement, FunctionDeclarationStatement, LocalAssignmentExpr,
                 FunctionCallStatement, BinaryOperationExpression, AssignableExpression, FunctionCallExpression,
                 LiteralExpression, ValueNameExpression, LeftValueIdentifiersList,
-                AssignmentStatement, ExpressionsTuple, ConditionalStatement,
+                AssignmentStatement, ExpressionsTuple, ConditionalStatement, ForLoopStatement,
                 ConditionalElseIfStatement, UnaryOperationExpression]

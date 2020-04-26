@@ -47,6 +47,9 @@ class VirtualMachine:
             OPCodeType.CMP_LE: self._handle_cmp_le,
             OPCodeType.CMP_LT: self._handle_cmp_lt,
             OPCodeType.CMP_NE: self._handle_cmp_ne,
+            OPCodeType.JUMP: self._handle_jump,
+            OPCodeType.JUMP_NEG: self._handle_jump_neg,
+            OPCodeType.JUMP_POS: self._handle_jump_pos,
         }
 
     def register_builtin_function(self, name: str, function: Callable):
@@ -139,6 +142,38 @@ class VirtualMachine:
     @binary_operation_handler
     def _handle_cmp_ne(self, left: Value, right: Value):
         return left.__ne__(right)
+
+    def _handle_jump_neg(self, instruction: OPCode):
+        comparison_result = self._context.pop_value()
+
+        if not isinstance(comparison_result, BooleanValue):
+            raise VirtualMachineInvalidInstructionError(
+                "Impossible to perform jump on negative condition: value on stack top is not boolean")
+
+        if comparison_result.value is False:
+            jump_address = instruction.first_arg
+
+            self._context.perform_jump(jump_address)
+        else:
+            pass
+
+    def _handle_jump_pos(self, instruction: OPCode):
+        comparison_result = self._context.pop_value()
+
+        if not isinstance(comparison_result, BooleanValue):
+            raise VirtualMachineInvalidInstructionError(
+                "Impossible to perform jump on positive condition: value on stack top is not boolean")
+
+        if comparison_result.value is True:
+            jump_address = instruction.first_arg
+
+            self._context.perform_jump(jump_address)
+        else:
+            pass
+
+    def _handle_jump(self, instruction: OPCode):
+        jump_address = instruction.first_arg
+        self._context.perform_jump(jump_address)
 
     def _handle_boolean_not(self, instruction: OPCode):
         right = self._pop_operand_value()

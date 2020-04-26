@@ -10,12 +10,17 @@ class OPCodesIO:
     def get_program_text(opcodes: List[OPCode]) -> str:
         text = ""
 
+        line_index = 0
+
         for opcode in opcodes:
             if not OPCodesValidator.is_opcode_valid(opcode):
                 raise OPCodeValidationError
 
             opcode_definition = OPCodesDefinitions.get_definition(opcode.type)
 
-            text += "{} {}\n".format(opcode_definition.name, " ".join([str(arg) for arg in opcode.args]))
+            text += "{}:\t\t {} {}\n".format(line_index, opcode_definition.name,
+                                         " ".join([str(arg) for arg in opcode.args]))
+
+            line_index += 1
 
         return text

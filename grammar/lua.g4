@@ -14,7 +14,7 @@ statement :  lvalue_handle '=' rvalue_handle #lb_assignment_statement |
 	'while' expression 'do' block 'end' #lb_while_statement |
 	'repeat' block 'until' expression #lb_repeat_until_statement |
 	'if' expression 'then' attr_then_block=block statement_elseif_item* ('else' attr_else_block=block)? 'end' #lb_conditional_statement |
-	'for' NAME '=' expression ',' expression (',' expression)? 'do' block 'end' #lb_for_statement |
+	'for' attr_counter=NAME '=' attr_start=expression ',' attr_end=expression (',' attr_step=expression)? 'do' block 'end' #lb_for_statement |
 	'for' lvalue_identifiers_list 'in' rvalue_handle 'do' block 'end' #lb_foreach_statement |
 	'function' top_level_name=NAME ('.' class_level_name=NAME)* (':' class_level_name=NAME)? function_body #lb_function_declaration_statement |
 	'local' 'function' NAME function_body #lb_local_function_declaration_statement |

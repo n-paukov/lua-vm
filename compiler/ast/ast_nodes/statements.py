@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from compiler.ast.ast_nodes.common import ValueName, FunctionParameter, LiteralType
 from compiler.ast.ast_nodes.expression import ExpressionNode
@@ -98,3 +98,49 @@ class ConditionalStatement(StatementNode):
         super().__init__()
         self._branches = branches
         self._else_statements = else_statements
+
+
+class ForLoopStatement(StatementNode):
+    _printable_fields = ["_counter_name", "_start_expression", "_end_expression", "_step_expression",
+                         "_statements_block"]
+
+    def __init__(self, counter_name: ValueName, start_expression: ExpressionNode, end_expression: ExpressionNode,
+                 step_expression: Optional[ExpressionNode], statements_block: StatementsBlock):
+        super().__init__()
+        self._counter_name = counter_name
+        self._start_expression = start_expression
+        self._end_expression = end_expression
+        self._step_expression = step_expression
+        self._statements_block = statements_block
+
+    def generate_opcodes(self, context: OPCodesCompilationContext):
+        context.add_opcode(OPCode(OPCodeType.BEGIN_SCOPE))
+
+        self._start_expression.generate_opcodes(context)
+        context.add_opcode(OPCode(OPCodeType.ASSIGN, [self._counter_name.full_name]))
+
+        loop_iteration_address = context.current_address + 1
+
+        context.add_opcode(OPCode(OPCodeType.PUSH, [self._counter_name.full_name]))
+        self._end_expression.generate_opcodes(context)
+
+        context.add_opcode(OPCode(OPCodeType.CMP_GT))
+        context.add_opcode(OPCode(OPCodeType.JUMP_POS, [-1]))
+
+        jump_to_loop_end_opcode = context.current_opcode
+
+        self._statements_block.generate_opcodes(context)
+
+        if self._step_expression is not None:
+            self._step_expression.generate_opcodes(context)
+        else:
+            context.add_opcode(OPCode(OPCodeType.PUSH, ['1']))
+
+        context.add_opcode(OPCode(OPCodeType.PUSH, [self._counter_name.full_name]))
+        context.add_opcode(OPCode(OPCodeType.SUM))
+        context.add_opcode(OPCode(OPCodeType.ASSIGN, [self._counter_name.full_name]))
+
+        context.add_opcode(OPCode(OPCodeType.JUMP, [loop_iteration_address]))
+
+        context.add_opcode(OPCode(OPCodeType.END_SCOPE))
+        jump_to_loop_end_opcode.args[0] = context.current_address

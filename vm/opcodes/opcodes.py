@@ -35,10 +35,6 @@ class OPCodeType(Enum):
     # Example: sum
     SUM = auto()
 
-    # Gets value from the stack, checks whether it is logical 'true' and pushes result
-    # Example: unary_test
-    TEST_POSITIVE = auto()
-
     # Jumps to the label
     # Example: jump start
     JUMP = auto()
@@ -144,10 +140,9 @@ class OPCodesDefinitions:
         OPCodeType.ASSIGN: OPCodeDefinition("assign", [OPCodeArgDefinition(str)]),
         OPCodeType.CALL: OPCodeDefinition("call", [OPCodeArgDefinition(int)]),
         OPCodeType.SUM: OPCodeDefinition("sum"),
-        OPCodeType.TEST_POSITIVE: OPCodeDefinition("test_positive"),
-        OPCodeType.JUMP: OPCodeDefinition("jump"),
-        OPCodeType.JUMP_NEG: OPCodeDefinition("jump_neg"),
-        OPCodeType.JUMP_POS: OPCodeDefinition("jump_pos"),
+        OPCodeType.JUMP: OPCodeDefinition("jump", [OPCodeArgDefinition(int)]),
+        OPCodeType.JUMP_NEG: OPCodeDefinition("jump_neg", [OPCodeArgDefinition(int)]),
+        OPCodeType.JUMP_POS: OPCodeDefinition("jump_pos", [OPCodeArgDefinition(int)]),
         OPCodeType.SUBTRACT: OPCodeDefinition("subtract"),
         OPCodeType.MULTIPLY: OPCodeDefinition("multiply"),
         OPCodeType.DIVIDE: OPCodeDefinition("divide"),

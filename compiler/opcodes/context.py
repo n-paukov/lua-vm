@@ -13,6 +13,14 @@ class OPCodesCompilationContext:
         return self._opcodes
 
     @property
+    def current_address(self) -> int:
+        return len(self._opcodes) - 1
+
+    @property
+    def current_opcode(self) -> OPCode:
+        return self._opcodes[-1]
+
+    @property
     def program_text(self) -> str:
         return OPCodesIO.get_program_text(self._opcodes)
 
