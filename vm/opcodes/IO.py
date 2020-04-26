@@ -1,7 +1,7 @@
 from typing import List
 
 from vm.exceptions.common import OPCodeValidationError
-from vm.opcodes.opcodes import OPCodeType, OPCodeBinaryTestMode, OPCode, OPCodesDefinitions
+from vm.opcodes.opcodes import OPCodeType, OPCode, OPCodesDefinitions
 from vm.opcodes.validator import OPCodesValidator
 
 

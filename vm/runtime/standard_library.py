@@ -1,5 +1,6 @@
 from vm.exceptions.common import VirtualMachineInvalidOperationError
-from vm.runtime.value import Value, NumberValue, StringValue, NilValue, BuiltinFunctionValue, CustomFunctionValue
+from vm.runtime.value import Value, NumberValue, StringValue, NilValue, BuiltinFunctionValue, CustomFunctionValue, \
+    BooleanValue
 
 
 class GeneralFunctions:
@@ -22,6 +23,8 @@ class GeneralFunctions:
             return str(value.value)
         elif isinstance(value, NilValue):
             return 'nil'
+        elif isinstance(value, BooleanValue):
+            return 'true' if value.value else 'false'
         elif isinstance(value, BuiltinFunctionValue):
             return 'builtin_function_instance(name=\"{}\")'.format(value.name)
         elif isinstance(value, CustomFunctionValue):

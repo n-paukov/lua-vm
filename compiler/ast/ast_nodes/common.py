@@ -44,7 +44,7 @@ class LiteralNode(ASTNode):
         elif self._type == LiteralType.IDENTIFIER:
             value = str(self._value)
         elif self._type == LiteralType.BOOLEAN:
-            value = str(self._value)
+            value = str(self._value).lower()
         elif self._type == LiteralType.NIL:
             value = str(self._value)
 

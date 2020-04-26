@@ -34,7 +34,6 @@ class ExecutionContext:
         self._call_stack: List[CallContext] = [CallContext(self._global_scope, -1, override_local_scope=True)]
         self._values_stack: List[Value] = []
         self._instruction_address: int = 0
-        self._logical_test_result: bool = False
 
     @property
     def end_reached(self) -> bool:

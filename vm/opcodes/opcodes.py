@@ -35,14 +35,9 @@ class OPCodeType(Enum):
     # Example: sum
     SUM = auto()
 
-    # Gets two values from the stack, compares their values and pushes result
-    # Modes: EQ, NE, LT, GT, LE, GE
-    # Example: binary_test EQ
-    BINARY_TEST = auto()
-
-    # Gets value from the stack, tests it and pushes result
+    # Gets value from the stack, checks whether it is logical 'true' and pushes result
     # Example: unary_test
-    UNARY_TEST = auto()
+    TEST_POSITIVE = auto()
 
     # Jumps to the label
     # Example: jump start
@@ -76,14 +71,45 @@ class OPCodeType(Enum):
     # Example: end_scope
     END_SCOPE = auto()
 
+    # Gets two values from the stack, performs logical "and" for them and pushes result
+    # Example: boolean_and
+    BOOLEAN_AND = auto()
 
-class OPCodeBinaryTestMode(Enum):
-    EQ = "eq"
-    NE = "ne"
-    LT = "lt"
-    GT = "gt"
-    LE = "le"
-    GE = "ge"
+    # Gets two values from the stack, performs logical "or" for them and pushes result
+    # Example: boolean_or
+    BOOLEAN_OR = auto()
+
+    # Gets value from the stack, inverse its sign and pushes result
+    # Example: boolean_or
+    MINUS = auto()
+
+    # Gets value from the stack, inverses its logical value and pushes result
+    # Example: boolean_or
+    BOOLEAN_NOT = auto()
+
+    # Gets two values from the stack, compares them and pushes result
+    # Example: cmp_eq
+    CMP_EQ = auto()
+
+    # Gets two values from the stack, compares them and pushes result
+    # Example: cmp_ne
+    CMP_NE = auto()
+
+    # Gets two values from the stack, compares them and pushes result
+    # Example: cmp_lt
+    CMP_LT = auto()
+
+    # Gets two values from the stack, compares them and pushes result
+    # Example: cmp_gt
+    CMP_GT = auto()
+
+    # Gets two values from the stack, compares them and pushes result
+    # Example: cmp_le
+    CMP_LE = auto()
+
+    # Gets two values from the stack, compares them and pushes result
+    # Example: cmp_ge
+    CMP_GE = auto()
 
 
 class OPCodeArgDefinition:
@@ -118,8 +144,7 @@ class OPCodesDefinitions:
         OPCodeType.ASSIGN: OPCodeDefinition("assign", [OPCodeArgDefinition(str)]),
         OPCodeType.CALL: OPCodeDefinition("call", [OPCodeArgDefinition(int)]),
         OPCodeType.SUM: OPCodeDefinition("sum"),
-        OPCodeType.BINARY_TEST: OPCodeDefinition("binary_test", [OPCodeArgDefinition(OPCodeBinaryTestMode)]),
-        OPCodeType.UNARY_TEST: OPCodeDefinition("unary_test"),
+        OPCodeType.TEST_POSITIVE: OPCodeDefinition("test_positive"),
         OPCodeType.JUMP: OPCodeDefinition("jump"),
         OPCodeType.JUMP_NEG: OPCodeDefinition("jump_neg"),
         OPCodeType.JUMP_POS: OPCodeDefinition("jump_pos"),
@@ -128,6 +153,16 @@ class OPCodesDefinitions:
         OPCodeType.DIVIDE: OPCodeDefinition("divide"),
         OPCodeType.BEGIN_SCOPE: OPCodeDefinition("begin_scope"),
         OPCodeType.END_SCOPE: OPCodeDefinition("end_scope"),
+        OPCodeType.BOOLEAN_AND: OPCodeDefinition("boolean_and"),
+        OPCodeType.BOOLEAN_OR: OPCodeDefinition("boolean_or"),
+        OPCodeType.BOOLEAN_NOT: OPCodeDefinition("boolean_not"),
+        OPCodeType.MINUS: OPCodeDefinition("boolean_minus"),
+        OPCodeType.CMP_EQ: OPCodeDefinition("cmp_eq"),
+        OPCodeType.CMP_NE: OPCodeDefinition("cmp_ne"),
+        OPCodeType.CMP_LT: OPCodeDefinition("cmp_lt"),
+        OPCodeType.CMP_GT: OPCodeDefinition("cmp_gt"),
+        OPCodeType.CMP_LE: OPCodeDefinition("cmp_le"),
+        OPCodeType.CMP_GE: OPCodeDefinition("cmp_ge"),
     }
 
     @classmethod

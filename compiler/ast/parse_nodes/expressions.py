@@ -5,7 +5,8 @@ from compiler.ast.parse_nodes.helpers import raw_value_name_to_ast_node
 from compiler.ast.parse_nodes.node import ParseNode
 from compiler.ast.ast_nodes.expressions import ExpressionsTuple as ASTExpressionsTuple, ValueExpression, \
     BinaryOperationExpression as ASTBinaryOperationExpression, BinaryExpressionType, \
-    FunctionCallExpression as ASTFunctionCallExpression
+    FunctionCallExpression as ASTFunctionCallExpression, UnaryExpressionType, \
+    UnaryOperationExpression as ASTUnaryOperationExpression
 
 
 class ExpressionsTuple(ExpressionNode):
@@ -34,7 +35,7 @@ class LiteralExpression(ExpressionNode):
         if self.nil_value:
             return LiteralNode(LiteralType.NIL)
         elif self.boolean_value:
-            return LiteralNode(LiteralType.BOOLEAN, bool(self.boolean_value.value))
+            return LiteralNode(LiteralType.BOOLEAN, self.boolean_value.value == 'true')
         elif self.number_value:
             return LiteralNode(LiteralType.NUMBER, float(self.number_value.value))
         elif self.string_value:
@@ -90,11 +91,44 @@ class BinaryOperationExpression(ExpressionNode):
             expression_type = BinaryExpressionType.MULTIPLY
         elif operation == "/":
             expression_type = BinaryExpressionType.DIVIDE
+        elif operation == "and":
+            expression_type = BinaryExpressionType.BOOLEAN_AND
+        elif operation == "or":
+            expression_type = BinaryExpressionType.BOOLEAN_OR
+        elif operation == "==":
+            expression_type = BinaryExpressionType.CMP_EQ
+        elif operation == ">":
+            expression_type = BinaryExpressionType.CMP_GT
+        elif operation == "<":
+            expression_type = BinaryExpressionType.CMP_LT
+        elif operation == "<=":
+            expression_type = BinaryExpressionType.CMP_LE
+        elif operation == ">=":
+            expression_type = BinaryExpressionType.CMP_GE
+        elif operation == "~=":
+            expression_type = BinaryExpressionType.CMP_NE
         else:
             raise NotImplementedError
 
         return ASTBinaryOperationExpression(self.left.get_ast_node(), self.right.get_ast_node(),
                                             expression_type)
+
+
+class UnaryOperationExpression(ExpressionNode):
+    _fields_spec = ["operation", "right"]
+    _rules = ["lb_unary_expression"]
+
+    def get_ast_node(self) -> ASTNode:
+        operation = self.operation.value
+
+        if operation == "-":
+            expression_type = UnaryExpressionType.MINUS
+        elif operation == "not":
+            expression_type = UnaryExpressionType.NOT
+        else:
+            raise NotImplementedError
+
+        return ASTUnaryOperationExpression(self.right.get_ast_node(), expression_type)
 
 
 class FunctionCallExpression(ExpressionNode):

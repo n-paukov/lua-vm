@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 from typing import List
 
 from compiler.ast.ast_nodes.common import LiteralNode, ValueName
@@ -32,10 +32,18 @@ class LocalAssignmentExpression(ExpressionNode):
 
 
 class BinaryExpressionType(Enum):
-    ADD = 0
-    SUBTRACT = 1
-    MULTIPLY = 2
-    DIVIDE = 3
+    ADD = auto()
+    SUBTRACT = auto()
+    MULTIPLY = auto()
+    DIVIDE = auto()
+    BOOLEAN_AND = auto()
+    BOOLEAN_OR = auto()
+    CMP_EQ = auto()
+    CMP_NE = auto()
+    CMP_LT = auto()
+    CMP_GT = auto()
+    CMP_LE = auto()
+    CMP_GE = auto()
 
 
 class BinaryOperationExpression(ExpressionNode):
@@ -59,6 +67,46 @@ class BinaryOperationExpression(ExpressionNode):
             context.add_opcode(OPCode(OPCodeType.MULTIPLY))
         elif self._expression_type == BinaryExpressionType.DIVIDE:
             context.add_opcode(OPCode(OPCodeType.DIVIDE))
+        elif self._expression_type == BinaryExpressionType.BOOLEAN_AND:
+            context.add_opcode(OPCode(OPCodeType.BOOLEAN_AND))
+        elif self._expression_type == BinaryExpressionType.BOOLEAN_OR:
+            context.add_opcode(OPCode(OPCodeType.BOOLEAN_OR))
+        elif self._expression_type == BinaryExpressionType.CMP_EQ:
+            context.add_opcode(OPCode(OPCodeType.CMP_EQ))
+        elif self._expression_type == BinaryExpressionType.CMP_NE:
+            context.add_opcode(OPCode(OPCodeType.CMP_NE))
+        elif self._expression_type == BinaryExpressionType.CMP_LT:
+            context.add_opcode(OPCode(OPCodeType.CMP_LT))
+        elif self._expression_type == BinaryExpressionType.CMP_GT:
+            context.add_opcode(OPCode(OPCodeType.CMP_GT))
+        elif self._expression_type == BinaryExpressionType.CMP_LE:
+            context.add_opcode(OPCode(OPCodeType.CMP_LE))
+        elif self._expression_type == BinaryExpressionType.CMP_GE:
+            context.add_opcode(OPCode(OPCodeType.CMP_GE))
+        else:
+            raise NotImplementedError
+
+
+class UnaryExpressionType(Enum):
+    NOT = auto()
+    MINUS = auto()
+
+
+class UnaryOperationExpression(ExpressionNode):
+    _printable_fields = ["_value"]
+
+    def __init__(self, right: ExpressionNode, expression_type: UnaryExpressionType):
+        super().__init__()
+        self._right = right
+        self._expression_type = expression_type
+
+    def generate_opcodes(self, context: OPCodesCompilationContext):
+        self._right.generate_opcodes(context)
+
+        if self._expression_type == UnaryExpressionType.MINUS:
+            context.add_opcode(OPCode(OPCodeType.MINUS))
+        elif self._expression_type == UnaryExpressionType.NOT:
+            context.add_opcode(OPCode(OPCodeType.BOOLEAN_NOT))
         else:
             raise NotImplementedError
 

@@ -7,7 +7,19 @@ from vm.runtime.context import ExecutionContext
 from vm.runtime.standard_library import GeneralFunctions
 from vm.runtime.utils import is_float_literal
 from vm.runtime.value import NumberValue, StringValue, IdentifierValue, Value, BuiltinFunctionValue, NilValue, \
-    CustomFunctionValue
+    CustomFunctionValue, BooleanValue
+
+
+def binary_operation_handler(func):
+    def wrap_db_exceptions_internal(self, instruction: OPCode):
+        right = self._pop_operand_value()
+        left = self._pop_operand_value()
+
+        value = func(self, left, right)
+
+        self._context.push_value(value)
+
+    return wrap_db_exceptions_internal
 
 
 class VirtualMachine:
@@ -25,6 +37,16 @@ class VirtualMachine:
             OPCodeType.RETURN: self._handle_return,
             OPCodeType.BEGIN_SCOPE: self._handle_begin_scope,
             OPCodeType.END_SCOPE: self._handle_end_scope,
+            OPCodeType.BOOLEAN_AND: self._handle_boolean_and,
+            OPCodeType.BOOLEAN_OR: self._handle_boolean_or,
+            OPCodeType.BOOLEAN_NOT: self._handle_boolean_not,
+            OPCodeType.MINUS: self._handle_minus,
+            OPCodeType.CMP_GT: self._handle_cmp_gt,
+            OPCodeType.CMP_EQ: self._handle_cmp_eq,
+            OPCodeType.CMP_GE: self._handle_cmp_ge,
+            OPCodeType.CMP_LE: self._handle_cmp_le,
+            OPCodeType.CMP_LT: self._handle_cmp_lt,
+            OPCodeType.CMP_NE: self._handle_cmp_ne,
         }
 
     def register_builtin_function(self, name: str, function: Callable):
@@ -61,7 +83,7 @@ class VirtualMachine:
         elif value == "nil":
             self._context.push_value(NilValue())
         elif value == "true" or value == "false":
-            raise NotImplementedError
+            self._context.push_value(BooleanValue(value == "true"))
         else:
             pushed_value = self._context.current_scope.get_value(value)
 
@@ -70,29 +92,63 @@ class VirtualMachine:
 
             self._context.push_value(pushed_value)
 
-    def _handle_multiply(self, instruction: OPCode):
+    @binary_operation_handler
+    def _handle_multiply(self, left: Value, right: Value):
+        return left * right
+
+    @binary_operation_handler
+    def _handle_sum(self, left: Value, right: Value):
+        return left + right
+
+    @binary_operation_handler
+    def _handle_subtract(self, left: Value, right: Value):
+        return left - right
+
+    @binary_operation_handler
+    def _handle_divide(self, left: Value, right: Value):
+        return left / right
+
+    @binary_operation_handler
+    def _handle_boolean_and(self, left: Value, right: Value):
+        return left.boolean_and(right)
+
+    @binary_operation_handler
+    def _handle_boolean_or(self, left: Value, right: Value):
+        return left.boolean_or(right)
+
+    @binary_operation_handler
+    def _handle_cmp_gt(self, left: Value, right: Value):
+        return left.__gt__(right)
+
+    @binary_operation_handler
+    def _handle_cmp_eq(self, left: Value, right: Value):
+        return left.__eq__(right)
+
+    @binary_operation_handler
+    def _handle_cmp_ge(self, left: Value, right: Value):
+        return left.__ge__(right)
+
+    @binary_operation_handler
+    def _handle_cmp_le(self, left: Value, right: Value):
+        return left.__le__(right)
+
+    @binary_operation_handler
+    def _handle_cmp_lt(self, left: Value, right: Value):
+        return left.__lt__(right)
+
+    @binary_operation_handler
+    def _handle_cmp_ne(self, left: Value, right: Value):
+        return left.__ne__(right)
+
+    def _handle_boolean_not(self, instruction: OPCode):
         right = self._pop_operand_value()
-        left = self._pop_operand_value()
 
-        self._context.push_value(left * right)
+        self._context.push_value(right.boolean_not())
 
-    def _handle_sum(self, instruction: OPCode):
+    def _handle_minus(self, instruction: OPCode):
         right = self._pop_operand_value()
-        left = self._pop_operand_value()
 
-        self._context.push_value(left + right)
-
-    def _handle_subtract(self, instruction: OPCode):
-        right = self._pop_operand_value()
-        left = self._pop_operand_value()
-
-        self._context.push_value(left - right)
-
-    def _handle_divide(self, instruction: OPCode):
-        right = self._pop_operand_value()
-        left = self._pop_operand_value()
-
-        self._context.push_value(left / right)
+        self._context.push_value(-right)
 
     def _handle_assign(self, instruction: OPCode):
         value = self._pop_operand_value()
