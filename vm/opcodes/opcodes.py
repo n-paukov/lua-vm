@@ -23,8 +23,12 @@ class OPCodeType(Enum):
     # Example: pop
     POP = auto()
 
-    # Gets value from the stack and assigns in to the variable in current scope
-    # Example: assign var
+    # Declares variable in local scope
+    # Example: assign var 1
+    DECLARE_LOCAL = auto()
+
+    # Gets value from the stack and assigns in to the variable in local scope or nearest appropriate scope
+    # Example: assign var 1
     ASSIGN = auto()
 
     # Pops value from the stack and calls it with specified number of arguments
@@ -107,6 +111,10 @@ class OPCodeType(Enum):
     # Example: cmp_ge
     CMP_GE = auto()
 
+    # Gets two values from the stack, concats them and pushes result
+    # Example: concat
+    CONCAT = auto()
+
 
 class OPCodeArgDefinition:
     def __init__(self, arg_type):
@@ -137,6 +145,7 @@ class OPCodesDefinitions:
         OPCodeType.RETURN: OPCodeDefinition("return", [OPCodeArgDefinition(int)]),
         OPCodeType.PUSH: OPCodeDefinition("push", [OPCodeArgDefinition(str)]),
         OPCodeType.POP: OPCodeDefinition("pop"),
+        OPCodeType.DECLARE_LOCAL: OPCodeDefinition("declare_local", [OPCodeArgDefinition(str)]),
         OPCodeType.ASSIGN: OPCodeDefinition("assign", [OPCodeArgDefinition(str)]),
         OPCodeType.CALL: OPCodeDefinition("call", [OPCodeArgDefinition(int)]),
         OPCodeType.SUM: OPCodeDefinition("sum"),
@@ -158,6 +167,7 @@ class OPCodesDefinitions:
         OPCodeType.CMP_GT: OPCodeDefinition("cmp_gt"),
         OPCodeType.CMP_LE: OPCodeDefinition("cmp_le"),
         OPCodeType.CMP_GE: OPCodeDefinition("cmp_ge"),
+        OPCodeType.CONCAT: OPCodeDefinition("concat"),
     }
 
     @classmethod

@@ -13,12 +13,23 @@ from vm.opcodes.opcodes import OPCode, OPCodeType
 class AssignmentStatement(StatementNode):
     _printable_fields = ["_lvalue_tuple", "_rvalue_tuple"]
 
-    def __init__(self, lvalue_tuple: ExpressionsTuple, rvalue_tuple: ExpressionsTuple):
+    def __init__(self, lvalue_tuple: ExpressionsTuple, rvalue_tuple: ExpressionsTuple, local: bool = False):
         super().__init__()
         self._lvalue_tuple = lvalue_tuple
         self._rvalue_tuple = rvalue_tuple
+        self._local = local
 
     def generate_opcodes(self, context: OPCodesCompilationContext):
+        if self._local:
+            for expression in self._lvalue_tuple.expressions:
+                if not isinstance(expression, ValueExpression):
+                    raise OPCodesCompilationError("Left value tuple should contain only assignable value expressions")
+
+                value_name = expression.value_name
+                assert not value_name.is_class_value
+
+                context.add_opcode(OPCode(OPCodeType.DECLARE_LOCAL, [value_name.name.value_representation]))
+
         for expression in self._rvalue_tuple.expressions:
             expression.generate_opcodes(context)
 

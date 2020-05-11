@@ -10,8 +10,8 @@ from vm.vm import VirtualMachine
 
 
 def main():
-    # builder = ASTBuilder(read_all_text('./tests/test.lua'))
-    # print_tree(builder.get_tree())
+    builder = ASTBuilder(read_all_text('./tests/test.lua'))
+    print_tree(builder.get_tree())
     # write_all_text("./tests/test_ast.txt", pformat(builder.get_tree()))
 
     bytecode = OPCodesCompiler.compile(read_all_text('./tests/test.lua'))

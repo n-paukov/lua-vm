@@ -93,6 +93,12 @@ class StringValue(Value):
         else:
             super().__lt__(other)
 
+    def concat(self, other):
+        if isinstance(other, StringValue):
+            return StringValue(self.value + other.value)
+        else:
+            super().concat(other)
+
 
 class BooleanValue(Value):
     def __init__(self, value: bool):

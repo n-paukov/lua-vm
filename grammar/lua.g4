@@ -8,7 +8,7 @@ return_statement :
     | 'break' #lb_block_end_break_statement
     ;
 
-statement :  lvalue_handle '=' rvalue_handle #lb_assignment_statement |
+statement :  attr_lvalue=lvalue_handle '=' attr_rvalue=rvalue_handle #lb_assignment_statement |
 	function_call_statement #lb_call_statement |
 	'do' block 'end' #lb_do_statement |
 	'while' expression 'do' block 'end' #lb_while_statement |
@@ -17,8 +17,8 @@ statement :  lvalue_handle '=' rvalue_handle #lb_assignment_statement |
 	'for' attr_counter=NAME '=' attr_start=expression ',' attr_end=expression (',' attr_step=expression)? 'do' block 'end' #lb_for_statement |
 	'for' lvalue_identifiers_list 'in' rvalue_handle 'do' block 'end' #lb_foreach_statement |
 	'function' top_level_name=NAME ('.' class_level_name=NAME)* (':' class_level_name=NAME)? function_body #lb_function_declaration_statement |
-	'local' 'function' NAME function_body #lb_local_function_declaration_statement |
-	'local' lvalue_identifiers_list ('=' rvalue_handle)? #lb_local_lvalue_declaration_statement ;
+	'local' 'function' top_level_name=NAME function_body #lb_local_function_declaration_statement |
+	attr_local='local' attr_lvalue=lvalue_identifiers_list ('=' attr_rvalue=rvalue_handle)? #lb_local_lvalue_declaration_statement ;
 
 statement_elseif_item: 'elseif' expression 'then' block;
 

@@ -57,14 +57,6 @@ class AssignableExpression(ExpressionNode):
         return ValueExpression(self.expression_value.get_ast_node())
 
 
-class LeftValueIdentifiersList(ExpressionNode):
-    _fields_spec = ["NAME"]
-    _rules = ["lvalue_identifiers_list"]
-
-    def get_ast_node(self) -> ASTNode:
-        raise NotImplementedError
-
-
 class ValueNameExpression(ExpressionNode):
     _fields_spec = ["top_level_name", "class_level_name"]
     _rules = ["expression_value"]
@@ -72,6 +64,27 @@ class ValueNameExpression(ExpressionNode):
     def get_ast_node(self) -> ASTNode:
         return raw_value_name_to_ast_node(self.top_level_name.value,
                                           self.class_level_name.value if self.class_level_name is not None else None)
+
+
+class LeftValueIdentifierNameExpression(ExpressionNode):
+    _fields_spec = ["name=NAME"]
+    _rules = ["lvalue_name"]
+
+    def get_ast_node(self) -> ASTNode:
+        return ValueExpression(raw_value_name_to_ast_node(self.name.children.pop(), None))
+
+
+class LeftValueIdentifiersList(ExpressionNode):
+    _fields_spec = ["names=NAME"]
+    _rules = ["lvalue_identifiers_list"]
+
+    def get_ast_node(self) -> ASTNode:
+        values_names = []
+
+        for identifier in self.names:
+            values_names.append(ValueExpression(raw_value_name_to_ast_node(str(identifier), None)))
+
+        return ASTExpressionsTuple(values_names)
 
 
 class BinaryOperationExpression(ExpressionNode):
@@ -107,6 +120,8 @@ class BinaryOperationExpression(ExpressionNode):
             expression_type = BinaryExpressionType.CMP_GE
         elif operation == "~=":
             expression_type = BinaryExpressionType.CMP_NE
+        elif operation == "..":
+            expression_type = BinaryExpressionType.CONCAT
         else:
             raise NotImplementedError
 
@@ -137,7 +152,7 @@ class FunctionCallExpression(ExpressionNode):
 
     def get_ast_node(self) -> ASTNode:
         return ASTFunctionCallExpression(self.callable.get_ast_node(),
-                                         self.args.get_ast_node() if self.args else ASTExpressionsTuple([]))
+                                         self.args.get_ast_node() if self.args else ASTExpressionsTuple([]), False)
 
 # class CallableHandle(ExpressionNode):
 #     _fields_spec = ["callable=callable_handle", "args=args_expression"]

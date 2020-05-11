@@ -1,5 +1,9 @@
 function sum(a, b)
+    local p = 10
+
     function internal_function(a, b)
+        p = 15
+
         return a + b
     end
 
@@ -7,7 +11,7 @@ function sum(a, b)
 end
 
 function calculate_some_expr(a, b, c)
-    t = sum(a, b)
+    local t = sum(a, b)
     t = t - c
 
     return t
@@ -20,3 +24,18 @@ function print_interval(a, b, c)
 end
 
 print_interval(4, 6, 5)
+
+
+local str = "Hello"
+local str2 = ", world!"
+
+local str3 = str..str2
+
+print(str3)
+print(sin(3.14159265 / 2))
+
+print("Input A and B: ")
+A = tonumber(read())
+B = tonumber(read())
+
+print(A + B)

@@ -4,14 +4,14 @@ from vm.exceptions.common import VirtualMachineInvalidInstructionError, VirtualM
     VirtualMachineScopeOrderError
 from vm.opcodes.opcodes import OPCode, OPCodeType
 from vm.runtime.context import ExecutionContext
-from vm.runtime.standard_library import GeneralFunctions
+from vm.runtime.standard_library import GeneralIOFunctions, GeneralMathFunctions, GeneralConversionsFunctions
 from vm.runtime.utils import is_float_literal
 from vm.runtime.value import NumberValue, StringValue, IdentifierValue, Value, BuiltinFunctionValue, NilValue, \
     CustomFunctionValue, BooleanValue
 
 
 def binary_operation_handler(func):
-    def wrap_db_exceptions_internal(self, instruction: OPCode):
+    def binary_operation_handler_internal(self, instruction: OPCode):
         right = self._pop_operand_value()
         left = self._pop_operand_value()
 
@@ -19,7 +19,7 @@ def binary_operation_handler(func):
 
         self._context.push_value(value)
 
-    return wrap_db_exceptions_internal
+    return binary_operation_handler_internal
 
 
 class VirtualMachine:
@@ -27,10 +27,12 @@ class VirtualMachine:
         self._context = ExecutionContext(opcodes)
         self._instructions_handlers = {
             OPCodeType.PUSH: self._handle_push,
+            OPCodeType.POP: self._handle_pop,
             OPCodeType.MULTIPLY: self._handle_multiply,
             OPCodeType.SUM: self._handle_sum,
             OPCodeType.SUBTRACT: self._handle_subtract,
             OPCodeType.DIVIDE: self._handle_divide,
+            OPCodeType.DECLARE_LOCAL: self._handle_declare_local,
             OPCodeType.ASSIGN: self._handle_assign,
             OPCodeType.FUNCTION: self._handle_function,
             OPCodeType.CALL: self._handle_call,
@@ -50,6 +52,7 @@ class VirtualMachine:
             OPCodeType.JUMP: self._handle_jump,
             OPCodeType.JUMP_NEG: self._handle_jump_neg,
             OPCodeType.JUMP_POS: self._handle_jump_pos,
+            OPCodeType.CONCAT: self._handle_concat,
         }
 
     def register_builtin_function(self, name: str, function: Callable):
@@ -59,7 +62,13 @@ class VirtualMachine:
         self._context.global_scope.set_value(name, BuiltinFunctionValue(name, function))
 
     def load_standard_library(self):
-        self.register_builtin_function("print", GeneralFunctions.print)
+        self.register_builtin_function("print", GeneralIOFunctions.print)
+        self.register_builtin_function("read", GeneralIOFunctions.read)
+
+        self.register_builtin_function("tostring", GeneralConversionsFunctions.tostring)
+        self.register_builtin_function("tonumber", GeneralConversionsFunctions.tonumber)
+
+        self.register_builtin_function("sin", GeneralMathFunctions.sin)
 
     def run(self):
         while not self._context.end_reached:
@@ -94,6 +103,9 @@ class VirtualMachine:
                 pushed_value = NilValue()
 
             self._context.push_value(pushed_value)
+
+    def _handle_pop(self, instruction: OPCode):
+        self._context.pop_value()
 
     @binary_operation_handler
     def _handle_multiply(self, left: Value, right: Value):
@@ -143,6 +155,10 @@ class VirtualMachine:
     def _handle_cmp_ne(self, left: Value, right: Value):
         return left.__ne__(right)
 
+    @binary_operation_handler
+    def _handle_concat(self, left: Value, right: Value):
+        return left.concat(right)
+
     def _handle_jump_neg(self, instruction: OPCode):
         comparison_result = self._context.pop_value()
 
@@ -184,6 +200,11 @@ class VirtualMachine:
         right = self._pop_operand_value()
 
         self._context.push_value(-right)
+
+    def _handle_declare_local(self, instruction: OPCode):
+        value_identifier = instruction.first_arg
+
+        self._context.current_scope.set_local_value(value_identifier, NilValue())
 
     def _handle_assign(self, instruction: OPCode):
         value = self._pop_operand_value()

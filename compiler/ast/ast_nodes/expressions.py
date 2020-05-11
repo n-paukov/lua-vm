@@ -44,6 +44,7 @@ class BinaryExpressionType(Enum):
     CMP_GT = auto()
     CMP_LE = auto()
     CMP_GE = auto()
+    CONCAT = auto()
 
 
 class BinaryOperationExpression(ExpressionNode):
@@ -83,6 +84,8 @@ class BinaryOperationExpression(ExpressionNode):
             context.add_opcode(OPCode(OPCodeType.CMP_LE))
         elif self._expression_type == BinaryExpressionType.CMP_GE:
             context.add_opcode(OPCode(OPCodeType.CMP_GE))
+        elif self._expression_type == BinaryExpressionType.CONCAT:
+            context.add_opcode(OPCode(OPCodeType.CONCAT))
         else:
             raise NotImplementedError
 
@@ -114,10 +117,11 @@ class UnaryOperationExpression(ExpressionNode):
 class FunctionCallExpression(ExpressionNode):
     _printable_fields = ["_callable", "_args"]
 
-    def __init__(self, callable_expression: ExpressionNode, args: ExpressionsTuple):
+    def __init__(self, callable_expression: ExpressionNode, args: ExpressionsTuple, is_orphan: bool):
         super().__init__()
         self._callable = callable_expression
         self._args = args
+        self._is_orphan = is_orphan
 
     def generate_opcodes(self, context: OPCodesCompilationContext):
         for expression in self._args.expressions:
@@ -131,6 +135,9 @@ class FunctionCallExpression(ExpressionNode):
             raise NotImplementedError
 
         context.add_opcode(OPCode(OPCodeType.CALL, [len(self._args.expressions)]))
+
+        if self._is_orphan:
+            context.add_opcode(OPCode(OPCodeType.POP))
 
 
 class ValueExpression(ExpressionNode):

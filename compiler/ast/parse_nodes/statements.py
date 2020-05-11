@@ -10,11 +10,11 @@ from compiler.ast.ast_nodes.expressions import FunctionCallExpression as ASTFunc
 
 
 class AssignmentStatement(StatementNode):
-    _fields_spec = ["lvalue=lvalue_handle", "rvalue=rvalue_handle"]
-    _rules = ["lb_assignment_statement"]
+    _fields_spec = ["lvalue=attr_lvalue", "rvalue=attr_rvalue", "local=attr_local"]
+    _rules = ["lb_assignment_statement", "lb_local_lvalue_declaration_statement"]
 
     def get_ast_node(self) -> ASTNode:
-        return ASTAssignmentStatement(self.lvalue.get_ast_node(), self.rvalue.get_ast_node())
+        return ASTAssignmentStatement(self.lvalue.get_ast_node(), self.rvalue.get_ast_node(), self.local is not None)
 
 
 class FunctionDeclarationStatement(StatementNode):
@@ -63,7 +63,7 @@ class FunctionCallStatement(StatementNode):
     def get_ast_node(self) -> ASTNode:
         return ASTFunctionCallExpression(
             ValueExpression(raw_value_name_to_ast_node(self.top_level_name, self.class_level_name)),
-            self.args.get_ast_node() if self.args else ExpressionsTuple([]))
+            self.args.get_ast_node() if self.args else ExpressionsTuple([]), True)
 
 
 class ConditionalStatement(StatementNode):
