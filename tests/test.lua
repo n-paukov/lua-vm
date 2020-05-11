@@ -25,17 +25,8 @@ end
 
 print_interval(4, 6, 5)
 
+local var = tonumber(read())
 
-local str = "Hello"
-local str2 = ", world!"
-
-local str3 = str..str2
-
-print(str3)
-print(sin(3.14159265 / 2))
-
-print("Input A and B: ")
-A = tonumber(read())
-B = tonumber(read())
-
-print(A + B)
+if var > 10 then
+    print("Variable 'var' is greater than 10 and has value " .. tostring(var))
+end

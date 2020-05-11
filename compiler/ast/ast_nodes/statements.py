@@ -103,12 +103,61 @@ class ConditionalBranchStatement(StatementNode):
         self._condition = condition
         self._then_statements = then_statements
 
+    @property
+    def condition(self) -> ExpressionNode:
+        return self._condition
+
+    @property
+    def then_statements(self) -> StatementsBlock:
+        return self._then_statements
+
+    def generate_opcodes(self, context: OPCodesCompilationContext):
+        return NotImplementedError
+
 
 class ConditionalStatement(StatementNode):
-    def __init__(self, branches: List[ConditionalBranchStatement], else_statements: StatementsBlock):
+    def __init__(self, branches: List[ConditionalBranchStatement], else_statements: Optional[StatementsBlock]):
         super().__init__()
         self._branches = branches
         self._else_statements = else_statements
+
+    def generate_opcodes(self, context: OPCodesCompilationContext):
+        branches_addresses = []
+        jump_next_branch_opcodes = []
+        jump_complete_opcodes = []
+
+        for branch in self._branches:
+            context.add_opcode(OPCode(OPCodeType.BEGIN_SCOPE))
+            branch.condition.generate_opcodes(context)
+
+            context.add_opcode(OPCode(OPCodeType.JUMP_NEG, [-1]))
+            jump_next_branch_opcodes.append(context.current_opcode)
+
+            branches_addresses.append(context.current_address + 1)
+
+            branch.then_statements.generate_opcodes(context)
+
+            context.add_opcode(OPCode(OPCodeType.JUMP, [-1]))
+            jump_complete_opcodes.append(context.current_opcode)
+
+            context.add_opcode(OPCode(OPCodeType.END_SCOPE))
+
+        if self._else_statements is not None:
+            context.add_opcode(OPCode(OPCodeType.BEGIN_SCOPE))
+            branches_addresses.append(context.current_address + 1)
+
+            self._else_statements.generate_opcodes(context)
+
+            context.add_opcode(OPCode(OPCodeType.END_SCOPE))
+
+        # Conditional statement end address
+        branches_addresses.append(context.current_address + 1)
+
+        for jump_opcode_index in range(len(jump_next_branch_opcodes)):
+            jump_next_branch_opcodes[jump_opcode_index].args[0] = branches_addresses[jump_opcode_index + 1]
+
+        for jump_complete_opcode in jump_complete_opcodes:
+            jump_complete_opcode.args[0] = branches_addresses[-1]
 
 
 class ForLoopStatement(StatementNode):

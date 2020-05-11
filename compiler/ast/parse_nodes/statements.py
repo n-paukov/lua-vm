@@ -4,7 +4,8 @@ from compiler.ast.parse_nodes.helpers import raw_value_name_to_ast_node
 from compiler.ast.parse_nodes.statement import StatementNode
 from compiler.ast.ast_nodes.statements import AssignmentStatement as ASTAssignmentStatement, \
     FunctionDeclarationStatement as ASTFunctionDeclarationStatement, ReturnStatement as ASTReturnStatement, \
-    BreakStatement as ASTBreakStatement, ForLoopStatement as ASTForLoopStatement
+    BreakStatement as ASTBreakStatement, ForLoopStatement as ASTForLoopStatement, \
+    ConditionalStatement as ASTConditionalStatement, ConditionalBranchStatement as ASTConditionalBranchStatement
 from compiler.ast.ast_nodes.expressions import FunctionCallExpression as ASTFunctionCallExpression, ValueExpression, \
     ExpressionsTuple
 
@@ -68,8 +69,20 @@ class FunctionCallStatement(StatementNode):
 
 class ConditionalStatement(StatementNode):
     _fields_spec = ["condition=expression", "then_block=attr_then_block",
-                    "elif=statement_elseif_item", "else_block=attr_else_block"]
+                    "elseif_branches=statement_elseif_item", "else_block=attr_else_block"]
     _rules = ["lb_conditional_statement"]
+
+    def get_ast_node(self) -> ASTNode:
+        branches = [ASTConditionalBranchStatement(self.condition.get_ast_node(), self.then_block.get_ast_node())]
+
+        if self.elseif_branches is not None:
+            for elseif_branch in self.elseif_branches:
+                branches.append(ASTConditionalBranchStatement(elseif_branch.condition.get_ast_node(),
+                                                              elseif_branch.then_block.get_ast_node()))
+
+        else_statements_block = self.else_block.get_ast_node() if self.else_block is not None else None
+
+        return ASTConditionalStatement(branches, else_statements_block)
 
 
 class ConditionalElseIfStatement(StatementNode):
